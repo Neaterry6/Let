@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mr Frank Chatify </title>
- <link rel="icon" type="image/x-icon" href="https://i.ibb.co/y01QqZQ/mrfrankofc.jpg">
+  <title>Mr Frank Chatify</title>
+  <link rel="icon" type="image/x-icon" href="https://i.ibb.co/y01QqZQ/mrfrankofc.jpg">
   <style>
     body {
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      background: linear-gradient(135deg, #87CEEB, #ADD8E6); /* Icy blue gradient */
       display: flex;
       justify-content: center;
       align-items: center;
@@ -130,6 +130,15 @@
     .chat-input button:hover {
       background: #0056b3;
     }
+    footer {
+      text-align: center;
+      padding: 10px;
+      background: #007bff;
+      color: white;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+    }
   </style>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 </head>
@@ -137,6 +146,7 @@
   <div class="username-form" id="username-form">
     <h1>Welcome to Chatify</h1>
     <input type="text" id="username-input" placeholder="Enter your username">
+    <input type="file" id="profile-picture-input" accept="image/*">
     <button onclick="setUsername()">Join Chat</button>
   </div>
 
@@ -153,6 +163,10 @@
     </div>
   </div>
 
+  <footer>
+    Mr Frank 2022-<span id="current-year"></span>
+  </footer>
+
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io(); // Connect to the server
@@ -162,14 +176,31 @@
     const onlineUsersList = document.getElementById('online-users-list');
     const chatMessages = document.getElementById('chat-messages');
     const messageInput = document.getElementById('message-input');
+    const profilePictureInput = document.getElementById('profile-picture-input');
+    const currentYearSpan = document.getElementById('current-year');
+
+    // Set current year in footer
+    currentYearSpan.textContent = new Date().getFullYear();
 
     // Set username and join the chat
     function setUsername() {
       const username = document.getElementById('username-input').value.trim();
+      const profilePicture = profilePictureInput.files[0];
       if (username) {
-        socket.emit('setUsername', username); // Send username to the server
-        usernameForm.style.display = 'none'; // Hide the username form
-        chatContainer.style.display = 'flex'; // Show the chat container
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const profilePictureUrl = e.target.result;
+          socket.emit('setUsername', { username, profilePictureUrl }); // Send username and profile picture to the server
+          usernameForm.style.display = 'none'; // Hide the username form
+          chatContainer.style.display = 'flex'; // Show the chat container
+        };
+        if (profilePicture) {
+          reader.readAsDataURL(profilePicture);
+        } else {
+          socket.emit('setUsername', { username, profilePictureUrl: null });
+          usernameForm.style.display = 'none';
+          chatContainer.style.display = 'flex';
+        }
       }
     }
 
@@ -185,7 +216,11 @@
     socket.on('message', (data) => {
       const messageElement = document.createElement('div');
       messageElement.classList.add('message');
-      messageElement.textContent = `${data.username}: ${data.message}`;
+      messageElement.style.backgroundColor = data.color; // Set unique color for each user
+      messageElement.innerHTML = `
+        <img src="${data.profilePictureUrl || 'https://via.placeholder.com/30'}" alt="Profile Picture" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">
+        <strong>${data.username}:</strong> ${data.message}
+      `;
       chatMessages.appendChild(messageElement);
       chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
     });
@@ -193,6 +228,21 @@
     // Update online users list
     socket.on('updateOnlineUsers', (users) => {
       onlineUsersList.innerHTML = users.map(user => `<li>${user}</li>`).join('');
+    });
+
+    // Load previous chat history
+    socket.on('loadChatHistory', (messages) => {
+      messages.forEach((data) => {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message');
+        messageElement.style.backgroundColor = data.color;
+        messageElement.innerHTML = `
+          <img src="${data.profilePictureUrl || 'https://via.placeholder.com/30'}" alt="Profile Picture" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">
+          <strong>${data.username}:</strong> ${data.message}
+        `;
+        chatMessages.appendChild(messageElement);
+      });
+      chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
     });
 
     // Send a message to the server
