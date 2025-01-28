@@ -9,7 +9,7 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 // Connect to MongoDB
-mongoose.connect('mongodb+srv://darexmucheri:cMd7EoTwGglJGXwR@cluster0.uwf6z.mongodb.net/chatify?retryWrites=true&w=majority', {
+mongoose.connect('mongodb+srv://darexmucheri:cMd7EoTwGglJGXwR@cluster0.uwf6z.mongodb.net/chatify1?retryWrites=true&w=majority', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
