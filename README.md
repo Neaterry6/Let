@@ -50,7 +50,7 @@ Ensure you have the following installed on your system:
 ├── .gitignore            # Ignored files in the repository
 └── README.md             # Project documentation
 ```
-#Usage
+# Usage
 Signup and Login:
 
 Users must create an account with a profile picture to access the chat.
