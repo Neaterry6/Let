@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat App</title>
+ <link rel="icon" type="image/x-icon" href="https://i.ibb.co/y01QqZQ/mrfrankofc.jpg">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      color: #333;
+    }
+    .username-form {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+    }
+    .username-form h1 {
+      margin-bottom: 20px;
+      font-size: 2rem;
+      color: #007bff;
+    }
+    .username-form input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+    .username-form button {
+      padding: 10px 20px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .username-form button:hover {
+      background: #0056b3;
+    }
+    .chat-container {
+      display: none;
+      width: 500px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      flex-direction: column;
+    }
+    .chat-header {
+      background: linear-gradient(135deg, #007bff, #00bfff);
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 1.5rem;
+    }
+    .online-users {
+      padding: 15px;
+      background: #f9f9f9;
+      border-bottom: 1px solid #ddd;
+    }
+    .online-users h3 {
+      margin: 0 0 10px 0;
+      font-size: 1.2rem;
+      color: #007bff;
+    }
+    .online-users ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .online-users li {
+      margin-bottom: 5px;
+      color: #555;
+    }
+    .chat-messages {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      border-bottom: 1px solid #ddd;
+      background: #f4f4f9;
+    }
+    .message {
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 5px;
+      background: white;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    }
+    .message.sent {
+      background: #007bff;
+      color: white;
+      align-self: flex-end;
+    }
+    .chat-input {
+      display: flex;
+      padding: 10px;
+      background: #f9f9f9;
+    }
+    .chat-input input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      margin-right: 10px;
+      font-size: 1rem;
+    }
+    .chat-input button {
+      padding: 10px 20px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .chat-input button:hover {
+      background: #0056b3;
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="username-form" id="username-form">
+    <h1>Welcome to ChatApp</h1>
+    <input type="text" id="username-input" placeholder="Enter your username">
+    <button onclick="setUsername()">Join Chat</button>
+  </div>
+
+  <div class="chat-container" id="chat-container">
+    <div class="chat-header">Chat Room</div>
+    <div class="online-users">
+      <h3>Online Users:</h3>
+      <ul id="online-users-list"></ul>
+    </div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-input">
+      <input type="text" id="message-input" placeholder="Type a message...">
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io(); // Connect to the server
+
+    const usernameForm = document.getElementById('username-form');
+    const chatContainer = document.getElementById('chat-container');
+    const onlineUsersList = document.getElementById('online-users-list');
+    const chatMessages = document.getElementById('chat-messages');
+    const messageInput = document.getElementById('message-input');
+
+    // Set username and join the chat
+    function setUsername() {
+      const username = document.getElementById('username-input').value.trim();
+      if (username) {
+        socket.emit('setUsername', username); // Send username to the server
+        usernameForm.style.display = 'none'; // Hide the username form
+        chatContainer.style.display = 'flex'; // Show the chat container
+      }
+    }
+
+    // Receive welcome message
+    socket.on('welcome', (message) => {
+      const welcomeMessage = document.createElement('div');
+      welcomeMessage.classList.add('message');
+      welcomeMessage.textContent = message;
+      chatMessages.appendChild(welcomeMessage);
+    });
+
+    // Receive messages from the server
+    socket.on('message', (data) => {
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('message');
+      messageElement.textContent = `${data.username}: ${data.message}`;
+      chatMessages.appendChild(messageElement);
+      chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
+    });
+
+    // Update online users list
+    socket.on('updateOnlineUsers', (users) => {
+      onlineUsersList.innerHTML = users.map(user => `<li>${user}</li>`).join('');
+    });
+
+    // Send a message to the server
+    function sendMessage() {
+      const message = messageInput.value.trim();
+      if (message) {
+        socket.emit('message', message); // Send message to the server
+        messageInput.value = ''; // Clear input
+      }
+    }
+  </script>
+</body>
+</html>
