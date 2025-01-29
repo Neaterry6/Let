@@ -33,12 +33,13 @@
     /* Username Form */
     .username-form {
       background: rgba(255, 255, 255, 0.95);
-      padding: 30px;
+      padding: 40px;
       border-radius: 20px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
       text-align: center;
       max-width: 400px;
       width: 100%;
+      animation: fadeIn 0.5s ease-in-out;
     }
 
     .username-form h1 {
@@ -55,11 +56,12 @@
       border-radius: 10px;
       font-size: 1rem;
       outline: none;
-      transition: border-color 0.3s ease;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
     .username-form input:focus {
       border-color: #007bff;
+      box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
     }
 
     .username-form button {
@@ -70,11 +72,12 @@
       border-radius: 10px;
       font-size: 1rem;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: background 0.3s ease, transform 0.2s ease;
     }
 
     .username-form button:hover {
       background: #0056b3;
+      transform: translateY(-2px);
     }
 
     /* Chat Container */
@@ -88,6 +91,7 @@
       flex-direction: column;
       height: 80vh;
       position: relative;
+      animation: slideIn 0.5s ease-in-out;
     }
 
     .chat-header {
@@ -97,6 +101,7 @@
       text-align: center;
       font-size: 1.5rem;
       font-weight: 600;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
     .online-users {
@@ -120,6 +125,7 @@
     .online-users li {
       margin-bottom: 5px;
       color: #555;
+      animation: fadeIn 0.5s ease-in-out;
     }
 
     .chat-messages {
@@ -138,6 +144,7 @@
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       max-width: 70%;
       position: relative;
+      animation: fadeIn 0.3s ease-in-out;
     }
 
     .message.sent {
@@ -195,11 +202,12 @@
       margin-right: 10px;
       font-size: 1rem;
       outline: none;
-      transition: border-color 0.3s ease;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
     .chat-input input:focus {
       border-color: #007bff;
+      box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
     }
 
     .chat-input button {
@@ -209,11 +217,12 @@
       border: none;
       border-radius: 10px;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: background 0.3s ease, transform 0.2s ease;
     }
 
     .chat-input button:hover {
       background: #0056b3;
+      transform: translateY(-2px);
     }
 
     /* Footer */
@@ -225,6 +234,7 @@
       position: fixed;
       bottom: 0;
       width: 100%;
+      box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
     }
 
     /* Loading Animation */
@@ -278,6 +288,12 @@
       justify-content: center;
       align-items: center;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    .dark-mode-toggle:hover {
+      background: #0056b3;
+      transform: scale(1.1);
     }
 
     /* Typing Indicator */
@@ -285,20 +301,42 @@
       font-size: 0.9rem;
       color: #555;
       margin-left: 10px;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="username-form" id="username-form">
-      <h1>Welcome to Chatify🤗</h1>
+      <h1>Welcome to Chatify 🤗</h1>
       <input type="text" id="username-input" placeholder="Enter your username">
       <input type="file" id="profile-picture-input" accept="image/*">
       <button onclick="setUsername()">Join Chat 🔗</button>
     </div>
 
     <div class="chat-container" id="chat-container">
-      <div class="chat-header">Chat Room.</div>
+      <div class="chat-header">Chat Room</div>
       <div class="online-users">
         <h3>🔮 Online Users:</h3>
         <ul id="online-users-list"></ul>
@@ -314,7 +352,7 @@
   </div>
 
   <footer>
-Darrell Mucheri 2022-<span id="current-year"></span>
+    Darrell Mucheri 2022-<span id="current-year"></span>
   </footer>
 
   <button class="dark-mode-toggle" onclick="toggleDarkMode()">
