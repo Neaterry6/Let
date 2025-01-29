@@ -13,13 +13,14 @@
       font-family: 'Poppins', sans-serif;
       margin: 0;
       padding: 0;
-      background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+      background: linear-gradient(135deg, #e6f4f9, #c3e4ff);
       color: #333;
       transition: background 0.3s, color 0.3s;
+      overflow: hidden;
     }
 
     body.dark-mode {
-      background: linear-gradient(135deg, #1e1e2f, #2d2d44);
+      background: linear-gradient(135deg, #0a192f, #1a2a4a);
       color: #fff;
     }
 
@@ -28,6 +29,35 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
+      position: relative;
+    }
+
+    /* Floating Background Lines */
+    .floating-lines {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .floating-lines div {
+      position: absolute;
+      width: 2px;
+      height: 100px;
+      background: rgba(0, 123, 255, 0.1);
+      animation: float 5s infinite ease-in-out;
+    }
+
+    @keyframes float {
+      0% {
+        transform: translateY(-100px) rotate(0deg);
+      }
+      100% {
+        transform: translateY(100vh) rotate(360deg);
+      }
     }
 
     /* Username Form */
@@ -138,7 +168,7 @@
 
     .message {
       margin-bottom: 15px;
-      padding: 10px;
+      padding: 10px 15px;
       border-radius: 15px;
       background: white;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -237,6 +267,17 @@
       box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
     }
 
+    .footer-icons a {
+      color: white;
+      margin: 0 10px;
+      font-size: 1.2rem;
+      transition: color 0.3s ease;
+    }
+
+    .footer-icons a:hover {
+      color: #00bfff;
+    }
+
     /* Loading Animation */
     .loading {
       display: none;
@@ -327,6 +368,14 @@
   </style>
 </head>
 <body>
+  <div class="floating-lines">
+    <div style="left: 10%; animation-delay: 0s;"></div>
+    <div style="left: 30%; animation-delay: 2s;"></div>
+    <div style="left: 50%; animation-delay: 4s;"></div>
+    <div style="left: 70%; animation-delay: 6s;"></div>
+    <div style="left: 90%; animation-delay: 8s;"></div>
+  </div>
+
   <div class="container">
     <div class="username-form" id="username-form">
       <h1>Welcome to Chatify 🤗</h1>
@@ -352,6 +401,12 @@
   </div>
 
   <footer>
+    <div class="footer-icons">
+      <a href="https://github.com" target="_blank"><i class="fab fa-github"></i></a>
+      <a href="https://whatsapp.com" target="_blank"><i class="fab fa-whatsapp"></i></a>
+      <a href="https://facebook.com" target="_blank"><i class="fab fa-facebook"></i></a>
+      <a href="https://instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
+    </div>
     Darrell Mucheri 2022-<span id="current-year"></span>
   </footer>
 
