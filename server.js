@@ -1,89 +1,80 @@
-// Beta version 1.0.0
-// Made by Mr Frank OFC
-// Give Credits if you want to coppy
-
-
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const mongoose = require('mongoose');
-const path = require('path');
+const express = require("express");
+const http = require("http");
+const socketIo = require("socket.io");
+const axios = require("axios");
+const cors = require("cors");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
-
-// Connect to MongoDB
-// Put Your Mongo & Replace Mine
-mongoose.connect('mongodb+srv://darexmucheri:cMd7EoTwGglJGXwR@cluster0.uwf6z.mongodb.net/chatify1?retryWrites=true&w=majority', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
+const io = socketIo(server, {
+  cors: { origin: "*" }
 });
 
-// Define ChatMessage schema
-const chatMessageSchema = new mongoose.Schema({
-  username: String,
-  profilePictureUrl: String,
-  message: String,
-  color: String,
-  timestamp: { type: Date, default: Date.now },
-});
+app.use(cors());
+app.use(express.static("public"));
 
-const ChatMessage = mongoose.model('ChatMessage', chatMessageSchema);
+io.on("connection", (socket) => {
+  console.log("A user connected");
 
-// Serve static files
-app.use(express.static(path.join(__dirname, 'public')));
+  socket.on("message", async (message) => {
+    console.log("Received message:", message);
 
-// Store online users and their colors
-const onlineUsers = new Map();
+    // Handle AI Requests
+    if (message.startsWith("Ai: ")) {
+      const query = message.substring(4);
+      try {
+        const response = await axios.get(`https://yt-video-production.up.railway.app/gemini-1.5-pro?ask=${encodeURIComponent(query)}`);
+        socket.emit("message", { username: "AI", message: response.data.reply || "AI response error." });
+      } catch (error) {
+        socket.emit("message", { username: "AI", message: "Error fetching AI response." });
+      }
+    }
 
-// Handle socket connections
-io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);
+    // Handle Lyrics Search
+    else if (message.startsWith("lyrics: ")) {
+      const songTitle = message.substring(7);
+      try {
+        const response = await axios.get(`https://kaiz-apis.gleeze.com/api/lyrics?title=${encodeURIComponent(songTitle)}`);
+        socket.emit("message", { username: "Lyrics", message: response.data.lyrics || "Lyrics not found." });
+      } catch (error) {
+        socket.emit("message", { username: "Lyrics", message: "Error fetching lyrics." });
+      }
+    }
 
-  // Listen for username submission
-  socket.on('setUsername', async (data) => {
-    const { username, profilePictureUrl } = data;
-    const color = `#${Math.floor(Math.random() * 16777215).toString(16)}`; // Generate a random color
-    onlineUsers.set(socket.id, { username, profilePictureUrl, color });
+    // Handle FluxPro Image Generation
+    else if (message.startsWith("fluxpro: ")) {
+      const prompt = message.substring(9);
+      try {
+        const response = await axios.get(`https://lance-frank-asta.onrender.com/api/FLUX-pro?prompt=${encodeURIComponent(prompt)}`);
+        socket.emit("message", { username: "FluxPro", message: response.data.image_url ? `<img src="${response.data.image_url}" style="max-width: 100%; border-radius: 10px;">` : "Image generation failed." });
+      } catch (error) {
+        socket.emit("message", { username: "FluxPro", message: "Error generating image." });
+      }
+    }
 
-    // Load previous chat history
-    const messages = await ChatMessage.find().sort({ timestamp: 1 }).limit(100);
-    socket.emit('loadChatHistory', messages);
+    // Handle SDXL Image Generation
+    else if (message.startsWith("sdxl: ")) {
+      const prompt = message.substring(5);
+      try {
+        const response = await axios.get(`https://kaiz-apis.gleeze.com/api/sdxl?prompt=${encodeURIComponent(prompt)}`);
+        socket.emit("message", { username: "SDXL", message: response.data.image_url ? `<img src="${response.data.image_url}" style="max-width: 100%; border-radius: 10px;">` : "Image generation failed." });
+      } catch (error) {
+        socket.emit("message", { username: "SDXL", message: "Error generating image." });
+      }
+    }
 
-    // Broadcast updated user list
-    io.emit('updateOnlineUsers', Array.from(onlineUsers.values()).map(user => user.username));
-
-    // Send welcome message
-    socket.emit('welcome', `Welcome, ${username}!`);
-  });
-
-  // Listen for incoming messages
-  socket.on('message', async (message) => {
-    const user = onlineUsers.get(socket.id);
-    if (user) {
-      const { username, profilePictureUrl, color } = user;
-      const chatMessage = new ChatMessage({ username, profilePictureUrl, message, color });
-      await chatMessage.save(); // Save message to MongoDB
-
-      // Broadcast the message to all clients
-      io.emit('message', { username, profilePictureUrl, message, color });
+    // Handle Normal Messages
+    else {
+      io.emit("message", { username: "User", message });
     }
   });
 
-  // Handle disconnection
-  socket.on('disconnect', () => {
-    const user = onlineUsers.get(socket.id);
-    if (user) {
-      onlineUsers.delete(socket.id);
-      io.emit('updateOnlineUsers', Array.from(onlineUsers.values()).map(user => user.username));
-      console.log(`${user.username} disconnected`);
-    }
+  socket.on("disconnect", () => {
+    console.log("User disconnected");
   });
 });
 
-// Start the server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Created by @Darrell Mucheri(🇿🇼)\n\nServer is running on http://localhost:${PORT}`);
-});
+  console.log(`Server running on port ${PORT}`);
+})
